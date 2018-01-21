@@ -7,7 +7,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.example.whiter0se.tictactoelocal"
+        applicationId "com.example.whiter0se.xtactoelocal"
         minSdkVersion 15
         targetSdkVersion 26
         versionCode 1

@@ -34,13 +34,14 @@ class MainActivity : AppCompatActivity() {
             R.id.btn9->cellID=9
         }
         playGame(cellID, currentButton)
-        //Toast.makeText(this, "ID: " + cellID, Toast.LENGTH_LONG).show()
     }
 
     var player1Area = ArrayList<Int>()
     var player2Area = ArrayList<Int>()
+    var occupiedArea = ArrayList<Int>()
     var winner = -1
     var turnToPlay = 1
+    var tempTurnToPlay = 1
     var gameOver = false
     var gameDrawn = false
 
@@ -50,11 +51,13 @@ class MainActivity : AppCompatActivity() {
         i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(i)
     }
+
     fun playGame(cellID: Int, currentButton: Button) {
 
         if(turnToPlay == 1) {
             if(isMovesLeft()) {
-                player1Area.add(cellID)
+//                player1Area.add(cellID)
+                occupiedArea.add(cellID)
                 currentButton.setTextColor(Color.parseColor("#ff79c6"))
                 currentButton.text = "X"
                 turnToPlay = 2
@@ -71,9 +74,10 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Game Drawn", Toast.LENGTH_LONG).show()
             }
         } else {
-            player2Area.add(cellID)
+//            player2Area.add(cellID)
+            occupiedArea.add(cellID)
             currentButton.setTextColor(Color.parseColor("#66d9ef"))
-            currentButton.text = "O"
+            currentButton.text = "X"
             turnToPlay = 1
             calculateWinner()
         }
@@ -105,23 +109,26 @@ class MainActivity : AppCompatActivity() {
     // and the user is player 1. If player 1 is missing then score is -10 and
     //if computer is winning then the score is +10
     fun evaluate(): Int {
-        if ((player1Area.contains(1) && player1Area.contains(2) && player1Area.contains(3))
-                || (player1Area.contains(4) && player1Area.contains(5) && player1Area.contains(6))
-                || (player1Area.contains(7) && player1Area.contains(8) && player1Area.contains(9))
-                || (player1Area.contains(1) && player1Area.contains(4) && player1Area.contains(7))
-                || (player1Area.contains(2) && player1Area.contains(5) && player1Area.contains(8))
-                || (player1Area.contains(3) && player1Area.contains(6) && player1Area.contains(9))
-                || (player1Area.contains(1) && player1Area.contains(5) && player1Area.contains(9))
-                || (player1Area.contains(3) && player1Area.contains(5) && player1Area.contains(7))) {
+        if (((occupiedArea.contains(1) && occupiedArea.contains(2) && occupiedArea.contains(3))
+            || (occupiedArea.contains(4) && occupiedArea.contains(5) && occupiedArea.contains(6))
+            || (occupiedArea.contains(7) && occupiedArea.contains(8) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(4) && occupiedArea.contains(7))
+            || (occupiedArea.contains(2) && occupiedArea.contains(5) && occupiedArea.contains(8))
+            || (occupiedArea.contains(3) && occupiedArea.contains(6) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(5) && occupiedArea.contains(9))
+            || (occupiedArea.contains(3) && occupiedArea.contains(5) && occupiedArea.contains(7))
+            ) && tempTurnToPlay == 1) {
+            //Users turn to play and already 3 x is done i.e. computer lost so negative score
             return -10
-        } else if ((player2Area.contains(1) && player2Area.contains(2) && player2Area.contains(3))
-                || (player2Area.contains(4) && player2Area.contains(5) && player2Area.contains(6))
-                || (player2Area.contains(7) && player2Area.contains(8) && player2Area.contains(9))
-                || (player2Area.contains(1) && player2Area.contains(4) && player2Area.contains(7))
-                || (player2Area.contains(2) && player2Area.contains(5) && player2Area.contains(8))
-                || (player2Area.contains(3) && player2Area.contains(6) && player2Area.contains(9))
-                || (player2Area.contains(1) && player2Area.contains(5) && player2Area.contains(9))
-                || (player2Area.contains(3) && player2Area.contains(5) && player2Area.contains(7))) {
+        } else if (((occupiedArea.contains(1) && occupiedArea.contains(2) && occupiedArea.contains(3))
+                || (occupiedArea.contains(4) && occupiedArea.contains(5) && occupiedArea.contains(6))
+                || (occupiedArea.contains(7) && occupiedArea.contains(8) && occupiedArea.contains(9))
+                || (occupiedArea.contains(1) && occupiedArea.contains(4) && occupiedArea.contains(7))
+                || (occupiedArea.contains(2) && occupiedArea.contains(5) && occupiedArea.contains(8))
+                || (occupiedArea.contains(3) && occupiedArea.contains(6) && occupiedArea.contains(9))
+                || (occupiedArea.contains(1) && occupiedArea.contains(5) && occupiedArea.contains(9))
+                || (occupiedArea.contains(3) && occupiedArea.contains(5) && occupiedArea.contains(7))
+                ) && tempTurnToPlay == 2) {
             return 10
         } else {
             return 0
@@ -143,7 +150,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun isEmpty(cellID: Int): Boolean {
-        if(!(player1Area.contains(cellID) || player2Area.contains(cellID))) {
+        //if(!(player1Area.contains(cellID) || player2Area.contains(cellID))) {
+        if(!occupiedArea.contains(cellID)) {
             return true
         }
         return false
@@ -162,10 +170,10 @@ class MainActivity : AppCompatActivity() {
         val score = evaluate()
 
         if(score == 10) {
-            return score
+            return score - depth
         }
         if(score == -10) {
-            return score
+            return score + depth
         }
         if(isMovesLeft() == false) {
             return 0
@@ -178,13 +186,16 @@ class MainActivity : AppCompatActivity() {
                 if(isEmpty(cellID)) {
 
                     //Make move
-                    player2Area.add(cellID)
+//                    player2Area.add(cellID)
+                    occupiedArea.add(cellID)
+                    tempTurnToPlay=1
 
                     //Evaluate best
                     best = max(best, minmax(depth+1, !isMax))
 
                     //Undo the move
-                    player2Area.remove(cellID)
+//                    player2Area.remove(cellID)
+                    occupiedArea.remove(cellID)
 
                 }
             }
@@ -196,13 +207,16 @@ class MainActivity : AppCompatActivity() {
                 if(isEmpty(cellID)) {
 
                     //Make move
-                    player1Area.add(cellID)
+//                    player1Area.add(cellID)
+                    occupiedArea.add(cellID)
+                    tempTurnToPlay=2
 
                     //Evaluate best
                     best = min(best, minmax(depth+1, !isMax))
 
                     //Undo the move
-                    player1Area.remove(cellID)
+//                    player1Area.remove(cellID)
+                    occupiedArea.remove(cellID)
 
                 }
             }
@@ -215,7 +229,7 @@ class MainActivity : AppCompatActivity() {
         var bestMove:Int=-1
 
         if(isMovesLeft() == false) {
-            //This is becaues we have initialized bestMove to -1 so it shouldn't proceed
+            //This is because we have initialized bestMove to -1 so it shouldn't proceed
             return -1
         }
 
@@ -223,13 +237,15 @@ class MainActivity : AppCompatActivity() {
             if(isEmpty(cellID)) {
 
                 //Make move
-                player2Area.add(cellID)
-
+//                player2Area.add(cellID)
+                occupiedArea.add(cellID)
+                tempTurnToPlay = 1
                 //Find move value
                 val moveVal = minmax(0, false)
 
                 //Undo move
-                player2Area.remove(cellID)
+//                player2Area.remove(cellID)
+                occupiedArea.remove(cellID)
 
                 if(moveVal > bestVal) {
                     bestVal = moveVal
@@ -253,31 +269,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun calculateWinner() {
-        if ((player1Area.contains(1) && player1Area.contains(2) && player1Area.contains(3))
-            || (player1Area.contains(4) && player1Area.contains(5) && player1Area.contains(6))
-            || (player1Area.contains(7) && player1Area.contains(8) && player1Area.contains(9))
-            || (player1Area.contains(1) && player1Area.contains(4) && player1Area.contains(7))
-            || (player1Area.contains(2) && player1Area.contains(5) && player1Area.contains(8))
-            || (player1Area.contains(3) && player1Area.contains(6) && player1Area.contains(9))
-            || (player1Area.contains(1) && player1Area.contains(5) && player1Area.contains(9))
-            || (player1Area.contains(3) && player1Area.contains(5) && player1Area.contains(7))) {
+        if (((occupiedArea.contains(1) && occupiedArea.contains(2) && occupiedArea.contains(3))
+            || (occupiedArea.contains(4) && occupiedArea.contains(5) && occupiedArea.contains(6))
+            || (occupiedArea.contains(7) && occupiedArea.contains(8) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(4) && occupiedArea.contains(7))
+            || (occupiedArea.contains(2) && occupiedArea.contains(5) && occupiedArea.contains(8))
+            || (occupiedArea.contains(3) && occupiedArea.contains(6) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(5) && occupiedArea.contains(9))
+            || (occupiedArea.contains(3) && occupiedArea.contains(5) && occupiedArea.contains(7))
+            ) && turnToPlay == 1) {
             winner = 1
-        } else if ((player2Area.contains(1) && player2Area.contains(2) && player2Area.contains(3))
-                || (player2Area.contains(4) && player2Area.contains(5) && player2Area.contains(6))
-                || (player2Area.contains(7) && player2Area.contains(8) && player2Area.contains(9))
-                || (player2Area.contains(1) && player2Area.contains(4) && player2Area.contains(7))
-                || (player2Area.contains(2) && player2Area.contains(5) && player2Area.contains(8))
-                || (player2Area.contains(3) && player2Area.contains(6) && player2Area.contains(9))
-                || (player2Area.contains(1) && player2Area.contains(5) && player2Area.contains(9))
-                || (player2Area.contains(3) && player2Area.contains(5) && player2Area.contains(7))) {
+        } else if (((occupiedArea.contains(1) && occupiedArea.contains(2) && occupiedArea.contains(3))
+            || (occupiedArea.contains(4) && occupiedArea.contains(5) && occupiedArea.contains(6))
+            || (occupiedArea.contains(7) && occupiedArea.contains(8) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(4) && occupiedArea.contains(7))
+            || (occupiedArea.contains(2) && occupiedArea.contains(5) && occupiedArea.contains(8))
+            || (occupiedArea.contains(3) && occupiedArea.contains(6) && occupiedArea.contains(9))
+            || (occupiedArea.contains(1) && occupiedArea.contains(5) && occupiedArea.contains(9))
+            || (occupiedArea.contains(3) && occupiedArea.contains(5) && occupiedArea.contains(7))
+            ) && turnToPlay == 2) {
             winner = 2
         }
         if (winner == 1) {
-            Toast.makeText(this, "Player 1 wins the game", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "You Won! Congratulations, Human", Toast.LENGTH_LONG).show()
             gameOver = true
             disableButtons()
         } else if (winner == 2){
-            Toast.makeText(this, "Player 2 wins the game", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "You Lost! Try Harder", Toast.LENGTH_LONG).show()
             gameOver = true
             disableButtons()
         }
